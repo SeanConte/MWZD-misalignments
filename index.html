@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Modal Mereological Misalignments 0_17</title>
+<style>
+  :root {
+    --bg: #f7f5ee;
+    --panel: #ffffff;
+    --ink: #232323;
+    --muted: #666;
+    --line: #d8d2c5;
+    --soft: #f0eadf;
+    --green: #bde8b8;
+    --green-strong: #8cd989;
+    --red: #efa1a1;
+    --red-strong: #df7676;
+    --blue: #dce9ff;
+    --yellow: #fff1b8;
+    --shadow: rgba(0,0,0,.08);
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.35; }
+  header { padding:22px 26px 14px; border-bottom:1px solid var(--line); background:linear-gradient(#fff9,#fff0); position:relative; }
+  h1 { margin:0 0 6px; font-size:26px; letter-spacing:-.03em; }
+  .app-version { position:absolute; top:20px; right:26px; font-family:var(--mono); font-size:12px; color:var(--muted); }
+  .citation-note { max-width:1160px; color:var(--muted); font-size:13px; }
+  main { padding:16px 22px 34px; }
+  .topbar { display:grid; grid-template-columns:1.1fr 1fr; gap:14px; align-items:start; margin-bottom:14px; }
+  .controls,.notes,.side-card,.sim-panel,.proxy-card { background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:0 1px 8px var(--shadow); }
+  .controls { padding:14px; }
+  .notes,.side-card,.proxy-card { padding:14px 16px; }
+  .controls h2,.notes h2,.side-card h2,.proxy-card h2 { margin:0 0 10px; font-size:15px; letter-spacing:-.02em; }
+  .control-grid { display:grid; grid-template-columns:repeat(4,minmax(130px,1fr)); gap:10px 12px; }
+  .control-section-label { grid-column:1 / -1; margin:3px 0 0; padding-top:10px; border-top:1px solid var(--line); color:var(--ink); font-size:12px; font-weight:700; letter-spacing:.02em; text-transform:uppercase; }
+  .control-section-label:first-child { border-top:0; padding-top:0; }
+  label { display:block; font-size:12px; color:var(--muted); margin-bottom:4px; }
+  input[type="number"],input[type="text"],select { width:100%; border:1px solid var(--line); border-radius:9px; padding:7px 8px; background:#fff; color:var(--ink); font-size:13px; }
+  input[type="range"] { width:100%; }
+  .range-wrap { grid-column:span 2; }
+  .range-readout { display:inline-block; margin-left:8px; color:var(--ink); font-family:var(--mono); font-size:12px; }
+  .draw-badge { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); background:#fff; border-radius:999px; padding:6px 10px; font-family:var(--mono); font-size:12px; color:var(--ink); }
+  .buttons { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:12px; }
+  button { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:10px; padding:8px 12px; font-size:13px; cursor:pointer; }
+  button.primary { background:#222; color:#fff; border-color:#222; }
+  button:hover { filter:brightness(.98); }
+  .small { font-size:12px; color:var(--muted); }
+  .tiny { font-size:11px; color:var(--muted); }
+  .panel-grid { display:grid; grid-template-columns:repeat(2,minmax(440px,1fr)); gap:14px; }
+  .connection-grid { display:grid; gap:10px; align-items:stretch; }
+  .grid-corner,.col-head,.row-head,.extra-head,.bottom-head,.dead-cell,.row-toggle-cell,.col-toggle-cell,.collapsed-cell { background:var(--soft); border:1px solid var(--line); border-radius:12px; padding:10px; }
+  .col-head,.extra-head,.bottom-head { text-align:center; font-weight:650; font-size:13px; letter-spacing:-.01em; }
+  .col-head,.row-head { position:relative; gap:6px; }
+  .col-head.collapsed { padding:0; writing-mode:vertical-rl; min-width:24px; font-size:11px; }
+  .row-head.collapsed { min-height:34px; writing-mode:horizontal-tb; transform:none; font-size:11px; padding:0; }
+  .row-head .label-text, .col-head .label-text { pointer-events:none; }
+  .collapse-toggle { position:absolute; top:4px; right:4px; width:20px; height:20px; padding:0; border-radius:7px; font-size:13px; line-height:1; display:flex; align-items:center; justify-content:center; }
+  .col-head.collapsed .collapse-toggle, .row-head.collapsed .collapse-toggle { position:static; width:100%; height:100%; border:0; background:transparent; }
+  .collapsed-cell { min-height:34px; padding:0; display:flex; align-items:center; justify-content:center; opacity:.58; }
+  .collapsed-cell::after { content:""; width:6px; height:6px; border-radius:50%; background:#b7ad9d; }
+  .thin-plus-cell { padding:0; display:flex; align-items:center; justify-content:center; background:var(--soft); border:1px solid var(--line); border-radius:12px; min-width:0; min-height:26px; z-index:2; }
+  .thin-plus-cell.vertical { writing-mode:vertical-rl; }
+  .thin-plus-cell.horizontal { writing-mode:horizontal-tb; }
+  .thin-plus-cell .thin-toggle { min-height:100%; min-width:100%; }
+  .thin-plus-cell.bottom-strip { min-height:26px; }
+  .row-head { display:flex; align-items:center; justify-content:center; text-align:center; font-weight:650; font-size:13px; writing-mode:vertical-rl; transform:rotate(180deg); min-height:260px; }
+  .bottom-head { display:flex; align-items:center; justify-content:center; min-height:168px; }
+  .bottom-head.collapsed { min-height:26px; padding:0; }
+  .row-toggle-cell,.col-toggle-cell,.dead-cell { display:flex; align-items:center; justify-content:center; min-width:0; min-height:0; }
+  .row-toggle-cell { padding:0; writing-mode:vertical-rl; }
+  .col-toggle-cell { padding:0; min-height:26px; }
+  .dead-cell { opacity:.55; }
+  .thin-toggle { width:100%; height:100%; min-height:26px; border:0; border-radius:12px; background:transparent; display:flex; align-items:center; justify-content:center; color:var(--ink); font-size:14px; font-weight:700; padding:0; }
+  .row-toggle-cell .thin-toggle { min-width:24px; min-height:100%; }
+  .expanded-toggle { font-size:12px; padding:4px 8px; margin-left:6px; }
+  .connection-grid .sim-panel { padding:10px; }
+  .connection-grid .panel-title { font-size:13px; }
+  .connection-grid .panel-tag { font-size:10px; }
+  .connection-grid .metrics { grid-template-columns:repeat(3,minmax(74px,1fr)); gap:6px; }
+  .connection-grid .metric { padding:5px 6px; }
+  .connection-grid .metric .value { font-size:12px; }
+  .connection-grid .metric .hint { display:none; }
+  .connection-grid .cell { min-width:3px; }
+  .connection-grid .matrix-title-row,.connection-grid .tick-row,.connection-grid .agent-row { gap:4px; }
+  .sim-panel { padding:13px 14px 14px; min-width:0; }
+  .panel-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:8px; }
+  .panel-title { margin:0; font-size:16px; letter-spacing:-.02em; }
+  .panel-tag { font-family:var(--mono); color:var(--muted); font-size:11px; white-space:nowrap; }
+  .matrix-wrap { overflow:hidden; padding:4px 0 0; position:relative; }
+  .matrix-title-row,.tick-row,.agent-row { display:grid; grid-template-columns:34px minmax(0,1fr) 56px; gap:6px; min-width:0; align-items:center; }
+  .matrix-title-row { align-items:end; margin-bottom:2px; }
+  .world-label { text-align:center; font-family:var(--serif); font-size:14px; color:var(--ink); }
+  .prob-label { text-align:right; font-family:var(--serif); font-size:14px; font-style:italic; }
+  .ticks { position:relative; height:16px; font-family:var(--serif); font-size:11px; color:#555; }
+  .tick { position:absolute; transform:translateX(-50%); top:0; }
+  .agent-row { margin-bottom:1px; }
+  .row-label { font-family:var(--serif); font-style:italic; text-align:right; padding-right:3px; font-size:13px; }
+  .cell-grid { display:grid; grid-template-columns:repeat(var(--runs),1fr); gap:1px; border:1px solid #333; background:#fff; }
+  .cell { aspect-ratio:1.2/1; min-width:4px; background:var(--red-strong); }
+  .cell.correct { background:var(--green-strong); }
+  .cell.focal { outline:2px solid #333; outline-offset:-2px; }
+  .cell:hover, .cell.tt-active { box-shadow:inset 0 0 0 1.7px #111; }
+  .cell.hl { box-shadow:inset 0 0 0 1.5px #111; }
+  .agent-row.hl .row-label, .metric-row.hl .row-label { font-weight:700; }
+  .metric.active { box-shadow:0 0 0 2px #111 inset; }
+  .tooltip {
+    position:fixed;
+    z-index:9999;
+    max-width:300px;
+    background:#1f1d19;
+    color:#f8f3e8;
+    border:1px solid #4a443a;
+    border-radius:10px;
+    padding:9px 10px;
+    box-shadow:0 8px 28px rgba(0,0,0,.28);
+    font-size:12px;
+    line-height:1.35;
+    pointer-events:none;
+    opacity:0;
+    transform:translateY(4px);
+    transition:opacity .08s ease, transform .08s ease;
+  }
+  .tooltip.show { opacity:1; transform:translateY(0); }
+  .tooltip .tt-title { font-weight:700; margin-bottom:7px; color:#fff; }
+  .tooltip .tt-body { color:#f0e7d7; }
+  .tt-grid { display:grid; grid-template-columns:max-content 1fr; gap:3px 10px; align-items:start; }
+  .tt-key { font-weight:700; color:#fff; white-space:nowrap; }
+  .tt-val { color:#f0e7d7; }
+  .tt-note { margin-top:7px; padding-top:7px; border-top:1px solid #5a5146; color:#d9cdbb; }
+
+  .metric-row .cell-grid { border-top:2px solid #333; }
+  .metric-row .cell.correct { background:var(--green); }
+  .metric-row .cell { background:var(--red); }
+  .pcol { font-family:var(--serif); font-size:13px; text-align:right; padding-right:2px; }
+  .metrics { display:grid; grid-template-columns:repeat(6,minmax(82px,1fr)); gap:8px; margin-top:12px; }
+  .metric { background:var(--soft); border:1px solid var(--line); border-radius:10px; padding:7px 8px; cursor:help; }
+  .metric .name { font-size:11px; color:var(--muted); margin-bottom:1px; }
+  .metric .value { font-family:var(--mono); font-size:14px; }
+  .metric .hint { font-size:10px; color:var(--muted); margin-top:2px; }
+  .legend { display:flex; gap:16px; align-items:center; flex-wrap:wrap; margin-top:12px; color:var(--ink); font-size:13px; }
+  .swatch { display:inline-block; width:13px; height:13px; border:1px solid #0001; vertical-align:-2px; margin-right:6px; }
+  .green{background:var(--green)} .red{background:var(--red)} .greenStrong{background:var(--green-strong)} .redStrong{background:var(--red-strong)}
+  details { margin-top:12px; border-top:1px solid var(--line); padding-top:10px; }
+  summary { cursor:pointer; color:var(--ink); font-size:13px; }
+  code,.mono { font-family:var(--mono); }
+  .formula { font-family:var(--serif); background:#fff; border:1px solid var(--line); padding:8px 10px; border-radius:9px; margin:8px 0; }
+  .section-heading { margin:20px 2px 10px; font-size:17px; letter-spacing:-.02em; }
+  .section-subtitle { margin:-6px 2px 12px; color:var(--muted); font-size:13px; max-width:1000px; }
+  .focal-layout { display:grid; grid-template-columns:330px 1fr; gap:14px; }
+  .kv { display:grid; grid-template-columns:1fr auto; gap:6px 10px; font-size:13px; margin-top:10px; }
+  .kv div:nth-child(2n) { font-family:var(--mono); }
+  .proxy-table { width:100%; border-collapse:collapse; font-size:12px; margin-top:8px; }
+  .proxy-table th,.proxy-table td { border:1px solid var(--line); padding:6px 7px; text-align:right; }
+  .proxy-table th:first-child,.proxy-table td:first-child { text-align:left; }
+  .proxy-table th { background:var(--soft); font-weight:600; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .figure-panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px 10px 8px; min-width:0; box-shadow:0 1px 8px var(--shadow); }
+  .figure-panel h4 { margin:0 0 8px; font-size:13px; letter-spacing:-.01em; }
+  .figure-legend { display:flex; flex-wrap:wrap; gap:8px 12px; font-size:11px; color:var(--muted); margin-top:6px; }
+  .legend-line { display:inline-flex; align-items:center; gap:5px; }
+  .legend-line .sw { width:16px; height:0; border-top:3px solid #999; display:inline-block; }
+  .trend-svg { width:100%; height:140px; display:block; background:#fff; border:1px solid var(--line); border-radius:10px; }
+  .axis-labels { display:flex; justify-content:space-between; font-size:10px; color:var(--muted); margin-top:4px; }
+  .column-figures { display:grid; grid-template-columns:repeat(3,minmax(260px,1fr)); gap:12px; margin-top:12px; }
+  @media (max-width:1100px) { .topbar,.panel-grid,.focal-layout,.grid2,.column-figures { grid-template-columns:1fr; } .control-grid { grid-template-columns:repeat(2,minmax(120px,1fr)); } .range-wrap { grid-column:span 2; } }
+  @media (max-width:760px) { .connection-grid { grid-template-columns:1fr !important; } .row-head { writing-mode:horizontal-tb; transform:none; min-height:auto; } .bottom-head{min-height:auto;} .bottom-head.collapsed{min-height:26px;} .grid-corner,.col-head,.extra-head { display:none; } .row-toggle-cell,.col-toggle-cell,.dead-cell{min-height:28px; writing-mode:horizontal-tb;} }
+  @media (max-width:560px) { main{padding:12px} header{padding:18px 16px 12px} .control-grid{grid-template-columns:1fr} .range-wrap{grid-column:span 1} .metrics{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<!--
+Modal Mereological Misalignments 0_17
+Changelog
+0_17
+- Rebuilt custom tooltips with structured rows and bold labels.
+- Fixed tooltip line breaks so they render as actual rows instead of literal \n text.
+- Added hover outline to individual cells.
+- Separated the simulation-run axis label from the current time badge.
+- Reworked metric tooltips with definition, calculation, and current value rows.
+
+0_16
+- Put metric tooltips onto the same custom tooltip system as cell tooltips.
+- Removed native metric title tooltips.
+- Added full contextual cell tooltips with model settings, network, strategy, simulation run, round, agent, chosen action, optimal action, and correctness.
+- Stored chosen actions per run/time so cell tooltips can report the actual performed action.
+- Added tooltip refresh on render to reduce animation flicker.
+- Fixed spacing in the simulation-runs header.
+
+0_15
+- Replaced native browser title tooltips with custom styled tooltips.
+- Added custom tooltips to the matrix cells themselves, with full cell context.
+- Removed the delay/question-mark browser tooltip behavior and reduced flicker during animation.
+- Fixed the spacing between “simulation runs” and the t-label.
+
+0_14
+- Renamed the app header to Modal Mereological Misalignments and moved the version badge to the top right.
+- Replaced “modal histories” with “simulation runs” and added a subtle t = __ label inside each matrix.
+- Replaced the large subtitle with a short citation note to the Mayo-Wilson, Zollman, and Danks paper.
+- Added tooltips on cells and metric boxes.
+- Metric boxes now explain the definition and current calculation, and hovering them highlights the relevant cells/rows.
+
+0_13
+- Removed pseudocount priors from action appraisal.
+- Expanded the world/action model from two fixed states to a finite K-state/K-action payoff matrix.
+- Replaced optimal/suboptimal payoff inputs with number of states/actions and target payoff variance.
+- Added a generated payoff matrix based on rotated action-payoff profiles, one uniquely optimal action per world.
+- Visually separated model controls, strategy controls, and display controls.
+- Updated preferred-action learners to distribute preferred actions across all available actions.
+- Generalized best-up-to-now, ε-greedy, social/fast ε-greedy, preferred-action learners, and reinforcement learning to K actions.
+
+0_12
+- Fixed the collapsed column-figure row so it stays as a thin strip instead of a tall empty band.
+- Adjusted the responsive layout so vertical/narrow desktop windows keep the grid headers instead of switching into the phone layout too early.
+- Moved the one-column mobile fallback to much narrower screens.
+
+0_11
+- Reworked collapsed columns into full-height thin slivers matching the row/column-figure expansion slivers.
+- Reworked collapsed rows into full-width thin slivers.
+- Removed nonessential explanatory captions and notes; kept only compact definitions.
+- Opened metrics definitions by default.
+- Swapped individual/group matrix colors so individual agent cells use the stronger colors and group summary rows use the softer colors.
+
+0_10
+- Added an animation-loop mode: repeat the same simulation run or draw a fresh simulation each time the animation wraps from the horizon back to t = 1.
+- Standardized collapsed/expand controls so strategy rows, communication columns, row figures, and column figures all use the same thin-plus cell style.
+- Removed the mismatch between header-style plus controls and separate sliver-style plus controls.
+
+0_9
+- Fixed the missed readParams wiring: draw, drawToken, and simSeed are now actually passed into every simulation call.
+- Run simulation now visibly changes the generated data and reports a concrete draw number/token.
+- Switched collapse/expand controls from click to pointerdown so they still respond at the highest animation speed, even if the grid rerenders before mouseup.
+- Layout changes while animating now pause briefly, render, then restart so controls are usable during fast playback.
+
+0_8
+- Made fresh simulation draws unmistakable: Run simulation now uses a new random draw token every time, not just an incremented counter.
+- Added a visible draw badge beside the time controls and a stronger status message after each run.
+- Made row/column/figure toggles pause the animation, apply the layout change, and restart the animation on the next tick. This avoids clicks being swallowed by the animation render loop.
+- Added explicit status feedback when a layout toggle restarts animation.
+
+0_7
+- Fixed Run simulation so pressing it generates a fresh data draw even when the visible seed and parameters are unchanged.
+- Added an internal draw counter to the simulation seed; changing model controls also advances the draw counter.
+- Made row/column/figure expansion safe during animation by refreshing the animation timer after layout changes.
+
+0_6
+- Added independent row and column collapse controls; remaining visible columns expand into the freed width.
+- Replaced animation speed dropdown with a continuous simulation-speed slider. The previous slowest setting is the far slow end; the previous fastest setting sits around the midpoint, leaving room for faster playback.
+- Added visual separation between model controls and display controls.
+- Kept row-figure and column-figure expansion controls in thin edge slivers.
+
+0_5
+- Integrated column figures into the bottom row of the main grid so they remain aligned with their communication columns.
+- Added thin in-grid expansion slivers for row figures and column figures, replacing the top-bar expansion buttons.
+- Row and column line figures now animate with the time slider, drawing only up to the selected time slice and restarting with the animation loop.
+
+0_4
+- Added expandable row figures and column figures controlled from the main page.
+- Row figures appear as a fourth data column, squeezed onto the page without horizontal scrolling, and compare the selected metric across the three communication levels for each strategy.
+- Column figures appear in an expandable section below the grid and compare the selected metric across all strategies for each communication level.
+- Added a shared figure-metric selector and removed horizontal scrolling from the matrix panels.
+
+0_3
+- Reframed the main view as a 5 × 3 strategy-by-connection grid: rows are strategies, columns are empty/private, cyclic/ring, and complete communication.
+- Set focal deviation aside by hiding it from the default page.
+- Updated finite proxies to report all strategy presets.
+
+0_2
+- Replaced generic S1/S2 labels with selectable MWZD-style strategy instances.
+- Added presets: best-up-to-now, decreasing epsilon-greedy, social/fast epsilon-greedy, preferred-action learner/family, reinforcement learning.
+- Separated communication topology from social uptake: private, ring, or complete networks; neighbor evidence can be weighted by lambda.
+- Four main panels now compare Strategy A and Strategy B across two selected communication regimes.
+- Added finite MWZD-style proxy table: IC-ish, GIC-ish, UC-stress, and GUC-stress. These are simulations, not theorem checks.
+- Focal deviation view now allows arbitrary focal/background strategy pairings.
+
+0_1
+- Focal deviation view moved onto the same page.
+- Removed large per-panel line-chart boxes.
+- Added animation speed control.
+
+0_0
+- First build: finite-time networked inquiry toy with agent × modal-history matrices.
+-->
+<header>
+  <div class="app-version">v0_17</div>
+  <h1>Modal Mereological Misalignments</h1>
+  <div class="citation-note">
+    This is an instantiation of a model formulated in Mayo-Wilson, Zollman, and Danks (2011), “The Independence Thesis: When Individual and Social Epistemology Diverge.”
+  </div>
+</header>
+
+<main>
+  <section class="topbar">
+    <div class="controls">
+      <h2>Controls</h2>
+      <div class="control-grid">
+        <div class="control-section-label">Model controls</div>
+        <div>
+          <label for="seed">Seed</label>
+          <input id="seed" type="text" value="modal-0-17" />
+        </div>
+        <div>
+          <label for="agents">Agents</label>
+          <input id="agents" type="number" min="2" max="18" value="7" />
+        </div>
+        <div>
+          <label for="runs">Simulation runs / columns</label>
+          <input id="runs" type="number" min="8" max="160" value="48" />
+        </div>
+        <div>
+          <label for="horizon">Time horizon</label>
+          <input id="horizon" type="number" min="2" max="250" value="70" />
+        </div>
+        <div>
+          <label for="stateCount">States / actions K</label>
+          <input id="stateCount" type="number" min="2" max="8" step="1" value="2" />
+        </div>
+        <div>
+          <label for="payoffVar">Target payoff variance</label>
+          <input id="payoffVar" type="number" min="0.0001" max="0.20" step="0.005" value="0.01" />
+        </div>
+        <div>
+          <label for="theta">Threshold θ</label>
+          <input id="theta" type="number" min="0.1" max="1" step="0.05" value="0.5" />
+        </div>
+
+        <div class="control-section-label">Strategy controls</div>
+        <div>
+          <label for="lambda">Neighbor uptake λ</label>
+          <input id="lambda" type="number" min="0" max="1" step="0.05" value="1" />
+        </div>
+        <div>
+          <label for="fastPower">Social/fast ε α</label>
+          <input id="fastPower" type="number" min="0.5" max="4" step="0.05" value="1.45" />
+        </div>
+        <div>
+          <label for="fastFloor">Social/fast ε floor</label>
+          <input id="fastFloor" type="number" min="0" max="0.5" step="0.01" value="0.00" />
+        </div>
+        <div>
+          <label for="initWeight">RL initial weight</label>
+          <input id="initWeight" type="number" min="0.01" max="20" step="0.25" value="1" />
+        </div>
+        <div>
+          <label for="prefMode">Preferred-action assignment</label>
+          <select id="prefMode">
+            <option value="distributed" selected>distributed family across actions</option>
+            <option value="same0">all prefer action 0</option>
+            <option value="same1">all prefer action 1</option>
+          </select>
+        </div>
+
+        <div class="control-section-label">Display controls</div>
+        <div>
+          <label for="sortCols">Column order</label>
+          <select id="sortCols">
+            <option value="natural">natural run order</option>
+            <option value="groupFailure">group failures first</option>
+            <option value="columnMean">by column mean</option>
+          </select>
+        </div>
+        <div>
+          <label for="showMetricRows">Matrix summary rows</label>
+          <select id="showMetricRows">
+            <option value="yes">show C and Jθ rows</option>
+            <option value="no">hide summary rows</option>
+          </select>
+        </div>
+        <div>
+          <label for="figureMetric">Row / column figure metric</label>
+          <select id="figureMetric">
+            <option value="meanCorrect">Mean correctness</option>
+            <option value="coverage">Coverage</option>
+            <option value="threshold">Jθ / threshold</option>
+            <option value="alignment" selected>Alignment</option>
+            <option value="socialVariance">SV</option>
+            <option value="modalVariance">MV</option>
+          </select>
+        </div>
+        <div class="range-wrap">
+          <label for="animSpeed">Simulation speed <span id="speedReadout" class="range-readout">650 ms/step</span></label>
+          <input id="animSpeed" type="range" min="0" max="100" value="26" />
+        </div>
+        <div>
+          <label for="loopMode">Animation loop</label>
+          <select id="loopMode">
+            <option value="repeat" selected>repeat same run</option>
+            <option value="redraw">draw new run each loop</option>
+          </select>
+        </div>
+        <div class="range-wrap">
+          <label for="time">Time slice <span id="timeReadout" class="range-readout">t = 20</span></label>
+          <input id="time" type="range" min="1" max="70" value="20" />
+        </div>
+      </div>
+      <div class="buttons">
+        <button class="primary" id="rerun">Run simulation</button>
+        <button id="animate">Animate</button>
+        <button id="resetTime">Reset time</button>
+        <span class="draw-badge">draw <span id="drawReadout">0</span></span>
+        <span class="small" id="status">Ready.</span>
+      </div>
+    </div>
+
+    <div class="notes">
+      <h2>Definitions</h2>
+      <div class="legend">
+        <span><span class="swatch greenStrong"></span>agent chose optimal action</span>
+        <span><span class="swatch redStrong"></span>agent chose suboptimal action</span>
+        <span><span class="swatch green"></span>group row success</span>
+        <span><span class="swatch red"></span>group row failure</span>
+      </div>
+      <details open>
+        <summary>Model</summary>
+        <div class="formula"><b>K states / K actions</b>: world q makes action q uniquely optimal.</div>
+        <div class="formula"><b>Payoff variance</b>: target variance among action success probabilities within each world.</div>
+        <div class="formula"><b>Outcome</b>: selected action yields binary payoff 0/1 with its world-relative success probability.</div>
+      </details>
+      <details open>
+        <summary>Strategy presets</summary>
+        <div class="formula"><b>Best-up-to-now</b>: choose an action with maximal observed average payoff; ties are random.</div>
+        <div class="formula"><b>Decreasing ε-greedy</b>: explore randomly with probability 1/(t+1); otherwise choose best-up-to-now.</div>
+        <div class="formula"><b>Social/fast ε-greedy</b>: explore randomly with ε = max(floor, 1/(observed evidence+1)^α); otherwise choose best-up-to-now.</div>
+        <div class="formula"><b>Preferred-action family</b>: each agent has preferred action i mod K; with probability 1/(t+1), choose it; otherwise choose best-up-to-now.</div>
+        <div class="formula"><b>Reinforcement learning</b>: choose action a with probability w(a)/Σw; add observed payoffs to the corresponding action weights.</div>
+      </details>
+      <details open>
+        <summary>Metric definitions</summary>
+        <div class="formula"><b>Mean</b>: average of all agent correctness cells at time t.</div>
+        <div class="formula"><b>Coverage</b>: fraction of histories where at least one agent chose the optimal action.</div>
+        <div class="formula"><b>Jθ</b>: fraction of histories where the proportion of correct agents is at least θ.</div>
+        <div class="formula"><b>Alignment</b>: average pairwise correlation of agents' correctness variables across histories.</div>
+        <div class="formula"><b>SV</b>: average within-history variance across agents.</div>
+        <div class="formula"><b>MV</b>: variance across histories of the column mean.</div>
+      </details>
+    </div>
+  </section>
+
+  <section id="communityView">
+    <h2 class="section-heading">Strategy × connection grid</h2>
+    <div id="panelGrid" class="connection-grid"></div>
+  </section>
+
+
+  <section class="grid2">
+    <div class="proxy-card">
+      <h2>Finite MWZD-style proxies</h2>
+      <div id="proxyTable"></div>
+    </div>
+  </section>
+
+  <section id="focalView" hidden>
+    <h2 class="section-heading">Focal deviation view</h2>
+    <div class="focal-layout">
+      <div class="side-card">
+        <h2>Focal deviation setup</h2>
+        <div class="control-grid" style="grid-template-columns:1fr;">
+          <div>
+            <label for="backgroundStrategy">Background community</label>
+            <select id="backgroundStrategy"></select>
+          </div>
+          <div>
+            <label for="focalA">Left panel focal strategy</label>
+            <select id="focalA"></select>
+          </div>
+          <div>
+            <label for="focalB">Right panel focal strategy</label>
+            <select id="focalB"></select>
+          </div>
+          <div>
+            <label for="focalComm">Communication</label>
+            <select id="focalComm">
+              <option value="private">private / no uptake</option>
+              <option value="ring">ring</option>
+              <option value="complete" selected>complete</option>
+            </select>
+          </div>
+        </div>
+        <div class="kv" id="focalDelta"></div>
+        <p class="small" style="margin-top:12px;">Deltas are right minus left at the selected time slice.</p>
+      </div>
+      <div id="focalPanels" class="panel-grid"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  const STRATEGIES = {
+    best: { label: "Best-up-to-now", short: "Best" },
+    epsilon: { label: "Decreasing ε-greedy", short: "ε-greedy" },
+    socialFast: { label: "Social/fast ε-greedy", short: "Fast ε" },
+    preferred: { label: "Preferred-action learner/family", short: "Preferred" },
+    reinforcement: { label: "Reinforcement learning", short: "RL" }
+  };
+  const FIGURE_METRICS = {
+    meanCorrect: { label: "Mean correctness", short: "Mean", range: [0,1] },
+    coverage: { label: "Coverage", short: "Coverage", range: [0,1] },
+    threshold: { label: "Jθ", short: "Jθ", range: [0,1] },
+    alignment: { label: "Alignment", short: "Alignment", range: [-1,1] },
+    socialVariance: { label: "SV", short: "SV", range: [0,0.25] },
+    modalVariance: { label: "MV", short: "MV", range: [0,0.25] }
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const MAIN_COMMS = ["private", "ring", "complete"];
+  const controls = [
+    "seed","agents","runs","horizon","stateCount","payoffVar","theta",
+    "lambda","fastPower","fastFloor","initWeight","prefMode","sortCols","showMetricRows","figureMetric","animSpeed","loopMode","time",
+    "backgroundStrategy","focalA","focalB","focalComm"
+  ];
+
+  let state = { community: [], focal: [], proxies: [], animating: false, timer: null, runNonce: 0, drawToken: "initial", rowFiguresExpanded: false, columnFiguresExpanded: false, collapsedRows: new Set(), collapsedCols: new Set() };
+
+  function populateStrategySelect(id, value) {
+    const el = $(id);
+    el.innerHTML = Object.entries(STRATEGIES).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join("");
+    el.value = value;
+  }
+
+  function hashString(str) {
+    let h = 1779033703 ^ str.length;
+    for (let i = 0; i < str.length; i++) {
+      h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+      h = (h << 13) | (h >>> 19);
+    }
+    return function() {
+      h = Math.imul(h ^ (h >>> 16), 2246822507);
+      h = Math.imul(h ^ (h >>> 13), 3266489909);
+      return (h ^= h >>> 16) >>> 0;
+    };
+  }
+  function mulberry32(a) {
+    return function() {
+      let t = a += 0x6D2B79F5;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function rngFromSeed(seed) { return mulberry32(hashString(seed)()); }
+  function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
+  function mean(arr) { return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0; }
+  function variance(arr) { if (!arr.length) return 0; const m = mean(arr); return mean(arr.map(x => (x-m)*(x-m))); }
+  function corr(xs, ys) {
+    const mx = mean(xs), my = mean(ys); let vx=0, vy=0, cov=0;
+    for (let i=0; i<xs.length; i++) { const dx=xs[i]-mx, dy=ys[i]-my; vx+=dx*dx; vy+=dy*dy; cov+=dx*dy; }
+    if (vx === 0 || vy === 0) return NaN;
+    return cov / Math.sqrt(vx*vy);
+  }
+  function fmt(x, digits=3) {
+    if (!Number.isFinite(x)) return "—";
+    return x.toFixed(digits).replace(/^0\./,".").replace(/^-0\./,"-.");
+  }
+
+  function readParams() {
+    const n = clamp(parseInt($("agents").value,10)||7,2,18);
+    const runs = clamp(parseInt($("runs").value,10)||48,8,160);
+    const horizon = clamp(parseInt($("horizon").value,10)||70,2,250);
+    const stateCount = clamp(parseInt($("stateCount").value,10)||2,2,8);
+    const payoffVar = clamp(parseFloat($("payoffVar").value),0.0001,0.20);
+    const visibleSeed = $("seed").value || "modal-0-17";
+    return {
+      seed: visibleSeed,
+      draw: state.runNonce,
+      drawToken: state.drawToken,
+      simSeed: `${visibleSeed}|draw-${state.runNonce}|token-${state.drawToken}`,
+      n, runs, horizon, stateCount, actionCount: stateCount, payoffVar,
+      theta: clamp(parseFloat($("theta").value),0.1,1),
+      lambda: clamp(parseFloat($("lambda").value),0,1),
+      fastPower: clamp(parseFloat($("fastPower").value),0.5,4),
+      fastFloor: clamp(parseFloat($("fastFloor").value),0,0.5),
+      initWeight: clamp(parseFloat($("initWeight").value),0.01,20),
+      prefMode: $("prefMode").value,
+      sortCols: $("sortCols").value,
+      showMetricRows: $("showMetricRows").value === "yes"
+    };
+  }
+
+  function neighborsFor(i, n, comm) {
+    if (comm === "private") return [];
+    if (comm === "ring") {
+      const left = (i - 1 + n) % n;
+      const right = (i + 1) % n;
+      return left === right ? [left] : [left, right];
+    }
+    const out = [];
+    for (let j=0; j<n; j++) if (j !== i) out.push(j);
+    return out;
+  }
+  function uptake(comm, params) { return comm === "private" ? 0 : params.lambda; }
+
+  function randomAction(rng, actionCount) {
+    return Math.floor(rng() * actionCount);
+  }
+
+  function chooseFrom(arr, rng) {
+    return arr[Math.floor(rng() * arr.length)];
+  }
+
+  function payoffMatrix(params) {
+    const k = params.actionCount;
+    const levels = Array.from({ length:k }, (_, i) => i - (k - 1) / 2);
+    const baseVar = variance(levels);
+    const scale = baseVar > 0 ? Math.sqrt(params.payoffVar / baseVar) : 0;
+    const matrix = [];
+    for (let q=0; q<k; q++) {
+      const row = Array(k);
+      for (let offset=0; offset<k; offset++) {
+        const action = (q + offset) % k;
+        const level = levels[k - 1 - offset];
+        row[action] = clamp(0.5 + scale * level, 0.02, 0.98);
+      }
+      matrix.push(row);
+    }
+    return matrix;
+  }
+
+  function preferredActions(n, mode, actionCount) {
+    if (mode === "same0") return Array.from({length:n}, () => 0);
+    if (mode === "same1") return Array.from({length:n}, () => Math.min(1, actionCount - 1));
+    return Array.from({length:n}, (_, i) => i % actionCount);
+  }
+
+  function initRunState(n, actionCount, initWeight) {
+    const trials=[], successes=[], weights=[];
+    for (let i=0; i<n; i++) {
+      trials.push(Array.from({length:actionCount}, () => 0));
+      successes.push(Array.from({length:actionCount}, () => 0));
+      weights.push(Array.from({length:actionCount}, () => initWeight));
+    }
+    return { trials, successes, weights };
+  }
+
+  function estimateAction(runState, agent, action, neighbors, lambda) {
+    let trials = runState.trials[agent][action];
+    let successes = runState.successes[agent][action];
+    for (const nb of neighbors) {
+      trials += lambda * runState.trials[nb][action];
+      successes += lambda * runState.successes[nb][action];
+    }
+    return { value: trials > 0 ? successes / trials : null, trials, successes };
+  }
+
+  function bestEstimatedAction(runState, agent, neighbors, lambda, actionCount, rng) {
+    const estimates = [];
+    let observedTotal = 0;
+    for (let a=0; a<actionCount; a++) {
+      const est = estimateAction(runState, agent, a, neighbors, lambda);
+      estimates.push(est);
+      observedTotal += est.trials;
+    }
+
+    const observed = [];
+    for (let a=0; a<actionCount; a++) if (estimates[a].trials > 0) observed.push(a);
+    const candidateActions = observed.length ? observed : Array.from({length:actionCount}, (_, a) => a);
+
+    let bestValue = -Infinity;
+    for (const a of candidateActions) {
+      const v = estimates[a].value === null ? 0 : estimates[a].value;
+      if (v > bestValue) bestValue = v;
+    }
+    const tied = candidateActions.filter(a => (estimates[a].value === null ? 0 : estimates[a].value) === bestValue);
+    return { best: chooseFrom(tied, rng), observedTotal, estimates };
+  }
+
+  function chooseAction(ctx) {
+    const { runState, agent, neighbors, comm, strategy, params, rng, t, preferred } = ctx;
+    const lambda = uptake(comm, params);
+    const info = bestEstimatedAction(runState, agent, neighbors, lambda, params.actionCount, rng);
+    const best = info.best;
+
+    if (strategy === "best") return best;
+
+    if (strategy === "epsilon") {
+      const eps = 1 / (t + 1);
+      return rng() < eps ? randomAction(rng, params.actionCount) : best;
+    }
+
+    if (strategy === "socialFast") {
+      const eps = Math.max(params.fastFloor, 1 / Math.pow(info.observedTotal + 1, params.fastPower));
+      return rng() < eps ? randomAction(rng, params.actionCount) : best;
+    }
+
+    if (strategy === "preferred") {
+      const protect = 1 / (t + 1);
+      return rng() < protect ? preferred[agent] : best;
+    }
+
+    if (strategy === "reinforcement") {
+      const weights = runState.weights[agent].map(w => Math.max(0.0001, w));
+      const total = weights.reduce((a,b)=>a+b,0);
+      let x = rng() * total;
+      for (let a=0; a<weights.length; a++) {
+        x -= weights[a];
+        if (x <= 0) return a;
+      }
+      return weights.length - 1;
+    }
+
+    return best;
+  }
+
+  function updateReinforcementWeights(runState, actions, outcomes, params, comm) {
+    const n = actions.length;
+    const lambda = uptake(comm, params);
+    for (let i=0; i<n; i++) {
+      const obs = [i, ...neighborsFor(i, n, comm)];
+      for (const j of obs) {
+        const factor = j === i ? 1 : lambda;
+        runState.weights[i][actions[j]] += factor * outcomes[j];
+      }
+    }
+  }
+
+  function simulatePanel(def, params, options = {}) {
+    const rng = rngFromSeed(`${params.simSeed || params.seed}|${def.id}|${params.n}|${params.runs}|${params.horizon}|${params.stateCount}|${params.payoffVar}`);
+    const payoffs = payoffMatrix(params);
+    const preferred = options.preferred || preferredActions(params.n, params.prefMode, params.actionCount);
+    const runs = [];
+
+    for (let r=0; r<params.runs; r++) {
+      const trueOptimal = randomAction(rng, params.stateCount);
+      const runState = initRunState(params.n, params.actionCount, params.initWeight);
+      const correctnessByTime = [];
+      const appraisalByTime = [];
+      const actionsByTime = [];
+
+      for (let t=1; t<=params.horizon; t++) {
+        const actions = [];
+        const appraisals = [];
+
+        for (let i=0; i<params.n; i++) {
+          const strategy = options.strategyForAgent ? options.strategyForAgent(i) : def.strategy;
+          const comm = options.commForAgent ? options.commForAgent(i) : def.comm;
+          const neighbors = neighborsFor(i, params.n, comm);
+          const lambda = uptake(comm, params);
+          const info = bestEstimatedAction(runState, i, neighbors, lambda, params.actionCount, rng);
+          appraisals.push(info.best === trueOptimal ? 1 : 0);
+          actions.push(chooseAction({ runState, agent:i, neighbors, comm, strategy, params, rng, t, preferred }));
+        }
+
+        const outcomes = [];
+        for (let i=0; i<params.n; i++) {
+          const a = actions[i];
+          const success = rng() < payoffs[trueOptimal][a] ? 1 : 0;
+          outcomes.push(success);
+          runState.trials[i][a] += 1;
+          runState.successes[i][a] += success;
+        }
+        updateReinforcementWeights(runState, actions, outcomes, params, def.comm);
+        actionsByTime.push(actions.slice());
+        correctnessByTime.push(actions.map(a => a === trueOptimal ? 1 : 0));
+        appraisalByTime.push(appraisals);
+      }
+      runs.push({ trueOptimal, actionsByTime, correctnessByTime, appraisalByTime });
+    }
+
+    const series = [];
+    for (let t=1; t<=params.horizon; t++) series.push(metricsFor(matrixAt(runs, t, params.n), params.theta));
+    return { def, runs, series, options, payoffs };
+  }
+
+  function matrixAt(runs, t, n, key = "correctnessByTime") {
+    const timeIndex = clamp(t, 1, runs[0]?.[key]?.length || 1) - 1;
+    const matrix = Array.from({ length:n }, () => []);
+    for (let r=0; r<runs.length; r++) {
+      const row = runs[r][key][timeIndex];
+      for (let i=0; i<n; i++) matrix[i].push(row[i]);
+    }
+    return matrix;
+  }
+
+  function actionMatrixAt(runs, t, n) {
+    return matrixAt(runs, t, n, "actionsByTime");
+  }
+
+  function metricsFor(matrix, theta) {
+    const n = matrix.length;
+    const runs = matrix[0]?.length || 0;
+    const all = matrix.flat();
+    const colMeans=[], coverageCols=[], thresholdCols=[], socialVars=[];
+    for (let r=0; r<runs; r++) {
+      const col=[];
+      for (let i=0; i<n; i++) col.push(matrix[i][r]);
+      const cm = mean(col);
+      colMeans.push(cm);
+      coverageCols.push(col.some(Boolean) ? 1 : 0);
+      thresholdCols.push(cm >= theta ? 1 : 0);
+      socialVars.push(variance(col));
+    }
+    const cors=[];
+    for (let i=0; i<n; i++) for (let j=i+1; j<n; j++) {
+      const c = corr(matrix[i], matrix[j]);
+      if (Number.isFinite(c)) cors.push(c);
+    }
+    return {
+      meanCorrect: mean(all),
+      coverage: mean(coverageCols),
+      threshold: mean(thresholdCols),
+      alignment: cors.length ? mean(cors) : NaN,
+      socialVariance: mean(socialVars),
+      modalVariance: variance(colMeans),
+      colMeans, coverageCols, thresholdCols
+    };
+  }
+
+  function panelDefinitions(params) {
+    const defs = [];
+    for (const strategy of Object.keys(STRATEGIES)) {
+      for (const comm of MAIN_COMMS) {
+        defs.push({
+          id:`grid-${strategy}-${comm}`,
+          strategy,
+          comm,
+          title: STRATEGIES[strategy].label,
+          tag: commLabel(comm)
+        });
+      }
+    }
+    return defs;
+  }
+  function commLabel(comm) {
+    if (comm === "private") return "private / no uptake";
+    if (comm === "ring") return "ring communication";
+    return "complete communication";
+  }
+
+  function sortOrder(matrix, metrics, mode) {
+    const runs = matrix[0]?.length || 0;
+    const order = Array.from({length:runs}, (_,i)=>i);
+    if (mode === "groupFailure") order.sort((a,b)=>metrics.thresholdCols[a]-metrics.thresholdCols[b] || metrics.colMeans[a]-metrics.colMeans[b] || a-b);
+    if (mode === "columnMean") order.sort((a,b)=>metrics.colMeans[a]-metrics.colMeans[b] || a-b);
+    return order;
+  }
+
+  function buildMatrix(panel, params, t, options = {}) {
+    const matrix = matrixAt(panel.runs, t, params.n);
+    const actionMatrix = actionMatrixAt(panel.runs, t, params.n);
+    const metrics = metricsFor(matrix, params.theta);
+    const order = sortOrder(matrix, metrics, params.sortCols);
+    const panelEl = document.createElement("article");
+    panelEl.className = "sim-panel";
+    panelEl.style.setProperty("--runs", params.runs);
+    panelEl.style.setProperty("--matrix-min", `0px`);
+    const focalSuffix = options.focal ? ` · focal ${STRATEGIES[options.focal].short}` : "";
+    panelEl.innerHTML = `
+      <div class="panel-head">
+        <h3 class="panel-title">${panel.def.title}</h3>
+        <div class="panel-tag">${panel.def.tag}${focalSuffix}</div>
+      </div>
+      <div class="matrix-wrap"></div>
+      <div class="metrics"></div>
+    `;
+    const wrap = panelEl.querySelector(".matrix-wrap");
+    const timeBadge = document.createElement("div");
+    timeBadge.className = "matrix-time";
+    timeBadge.textContent = `t = ${t}`;
+    wrap.appendChild(timeBadge);
+    wrap.appendChild(matrixHeader(params, order, t));
+    for (let i=0; i<params.n; i++) wrap.appendChild(agentRow(`A${i+1}`, matrix[i], order, options.focalAgent === i, false, t, { panel, params, agentIndex:i, actions:actionMatrix[i] }));
+    if (params.showMetricRows) {
+      wrap.appendChild(agentRow("C", metrics.coverageCols, order, false, true, t, { panel, params, metrics }));
+      wrap.appendChild(agentRow("Jθ", metrics.thresholdCols, order, false, true, t, { panel, params, metrics }));
+    }
+    panelEl.querySelector(".metrics").innerHTML = `
+      ${metricBox("mean", "Mean", fmt(metrics.meanCorrect), "agent cells", [
+        "Definition: average correctness over all agent × run cells",
+        `Calculation: sum of correct agent cells / (${params.n} agents × ${params.runs} runs)`,
+        `Time: t = ${t}`,
+        `Current value: ${fmt(metrics.meanCorrect)}`
+      ].join("\n"))}
+      ${metricBox("coverage", "Coverage", fmt(metrics.coverage), "∃ correct", [
+        "Definition: fraction of runs where at least one agent chose the optimal arm",
+        `Calculation: mean of the C row over ${params.runs} runs`,
+        `Time: t = ${t}`,
+        `Current value: ${fmt(metrics.coverage)}`
+      ].join("\n"))}
+      ${metricBox("threshold", "Jθ", fmt(metrics.threshold), `θ = ${params.theta}`, [
+        `Definition: fraction of runs where the correct-agent proportion is at least θ = ${params.theta}`,
+        `Calculation: mean of the Jθ row over ${params.runs} runs`,
+        `Time: t = ${t}`,
+        `Current value: ${fmt(metrics.threshold)}`
+      ].join("\n"))}
+      ${metricBox("alignment", "Alignment", fmt(metrics.alignment), "avg corr", [
+        "Definition: average pairwise correlation among agents' correctness variables",
+        `Calculation: pairwise correlations across ${params.runs} simulation runs`,
+        `Time: t = ${t}`,
+        `Current value: ${fmt(metrics.alignment)}`
+      ].join("\n"))}
+      ${metricBox("socialVariance", "SV", fmt(metrics.socialVariance), "within run", [
+        "Definition: average within-run variance across agents",
+        `Calculation: for each run, variance of that column; then average across ${params.runs} runs`,
+        `Time: t = ${t}`,
+        `Current value: ${fmt(metrics.socialVariance)}`
+      ].join("\n"))}
+      ${metricBox("modalVariance", "MV", fmt(metrics.modalVariance), "across runs", [
+        "Definition: variance across runs of the column mean",
+        `Calculation: variance of the ${params.runs} run-level mean correctness values`,
+        `Time: t = ${t}`,
+        `Current value: ${fmt(metrics.modalVariance)}`
+      ].join("\n"))}
+    `;
+    bindMetricInteractions(panelEl);
+    return { el:panelEl, metrics, matrix };
+  }
+
+  function matrixHeader(params, order, t) {
+    const frag = document.createDocumentFragment();
+    const title = document.createElement("div");
+    title.className = "matrix-title-row";
+    title.innerHTML = `<div></div><div class="world-label">simulation runs</div><div class="prob-label">P</div>`;
+    frag.appendChild(title);
+    const tickRow = document.createElement("div");
+    tickRow.className = "tick-row";
+    tickRow.insertAdjacentHTML("beforeend", `<div></div>`);
+    const ticks = document.createElement("div");
+    ticks.className = "ticks";
+    for (const v of tickValues(params.runs)) {
+      const idx = order.indexOf(v - 1);
+      if (idx >= 0) {
+        const tick = document.createElement("div");
+        tick.className = "tick";
+        tick.style.left = `${((idx+0.5)/params.runs)*100}%`;
+        tick.textContent = String(v);
+        ticks.appendChild(tick);
+      }
+    }
+    tickRow.appendChild(ticks);
+    tickRow.insertAdjacentHTML("beforeend", `<div></div>`);
+    frag.appendChild(tickRow);
+    return frag;
+  }
+  function tickValues(runs) { const vals=[1]; for (let v=5; v<=runs; v+=5) vals.push(v); if (!vals.includes(runs)) vals.push(runs); return vals; }
+  function escapeAttr(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;");
+  }
+  function agentRow(label, values, order, isFocal=false, isMetric=false, t=1, ctx={}) {
+    const row = document.createElement("div");
+    row.className = `agent-row${isMetric ? " metric-row" : ""}`;
+    if (isMetric) row.dataset.metricRow = label === "C" ? "coverage" : "threshold";
+    else row.dataset.metricRow = "agent";
+
+    const panel = ctx.panel;
+    const params = ctx.params;
+    const strategyLabel = panel?.def?.title || "strategy";
+    const networkLabel = panel?.def?.tag || "network";
+    const modelSettings = params ? `K = ${params.stateCount}; payoff variance = ${fmt(params.payoffVar,4)}; θ = ${params.theta}` : "";
+
+    const ordered = order.map(idx => values[idx]);
+    const cells = ordered.map((v, pos) => {
+      const runIndex = order[pos];
+      const runNum = runIndex + 1;
+      let ttTitle = label;
+      let ttBody = "";
+
+      if (!isMetric) {
+        const action = ctx.actions ? ctx.actions[runIndex] : null;
+        const optimal = panel?.runs?.[runIndex]?.trueOptimal;
+        const actionTxt = action === null || action === undefined ? "unknown" : `arm ${action}`;
+        const optimalTxt = optimal === null || optimal === undefined ? "unknown" : `arm ${optimal}`;
+        ttTitle = `${label} · run ${runNum} · t = ${t}`;
+        ttBody = [
+          `Model settings: ${modelSettings}`,
+          `Network: ${networkLabel}`,
+          `Strategy: ${strategyLabel}`,
+          `Simulation run: #${runNum}`,
+          `Round: #${t}`,
+          `Agent: ${label.replace("A","")}`,
+          `Performed action: ${actionTxt}`,
+          `Optimal action: ${optimalTxt}`,
+          `Result: ${v ? "correct action" : "incorrect action"}`
+        ].join("\n");
+      } else if (label === "C") {
+        ttTitle = `Coverage · run ${runNum} · t = ${t}`;
+        ttBody = [
+          `Model settings: ${modelSettings}`,
+          `Network: ${networkLabel}`,
+          `Strategy: ${strategyLabel}`,
+          `Simulation run: #${runNum}`,
+          `Round: #${t}`,
+          `Definition: C = 1 iff at least one agent chose the optimal arm`,
+          `Value: ${v ? "1" : "0"}`
+        ].join("\n");
+      } else {
+        ttTitle = `Jθ · run ${runNum} · t = ${t}`;
+        const cm = ctx.metrics?.colMeans?.[runIndex];
+        ttBody = [
+          `Model settings: ${modelSettings}`,
+          `Network: ${networkLabel}`,
+          `Strategy: ${strategyLabel}`,
+          `Simulation run: #${runNum}`,
+          `Round: #${t}`,
+          `Definition: Jθ = 1 iff the correct-agent proportion is at least θ`,
+          `Correct-agent proportion: ${fmt(cm)}`,
+          `Value: ${v ? "1" : "0"}`
+        ].join("\n");
+      }
+      return `<span class="cell ${v ? "correct" : ""} ${isFocal ? "focal" : ""}" data-tt-title="${escapeAttr(ttTitle)}" data-tt-body="${escapeAttr(ttBody)}"></span>`;
+    }).join("");
+
+    const pTitle = isMetric
+      ? `${label} row average across simulation runs at t = ${t}.`
+      : `${label} mean correctness across simulation runs at t = ${t}.`;
+    row.innerHTML = `<div class="row-label">${label}</div><div class="cell-grid">${cells}</div><div class="pcol" data-tt-title="${escapeAttr(label + ' mean')}" data-tt-body="${escapeAttr(pTitle)}">${fmt(mean(values),2)}</div>`;
+    return row;
+  }
+  function metricBox(key, name, value, hint, title) { return `<div class="metric" tabindex="0" data-target="${key}" data-tt-title="${escapeAttr(name)}" data-tt-body="${escapeAttr(title)}"><div class="name">${name}</div><div class="value">${value}</div><div class="hint">${hint}</div></div>`; }
+  let activeTooltipTarget = null;
+  let lastPointer = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+
+  function tooltipEl() { return $("appTooltip"); }
+  function tooltipBodyHtml(body) {
+    const lines = String(body || "").split(/\n+/).filter(Boolean);
+    if (!lines.length) return "";
+    const rows = lines.map(line => {
+      const idx = line.indexOf(":");
+      if (idx > -1) {
+        const key = escapeAttr(line.slice(0, idx));
+        const val = escapeAttr(line.slice(idx + 1).trim());
+        return `<div class="tt-key">${key}</div><div class="tt-val">${val}</div>`;
+      }
+      return `<div class="tt-note" style="grid-column:1 / -1">${escapeAttr(line)}</div>`;
+    }).join("");
+    return `<div class="tt-grid">${rows}</div>`;
+  }
+  function showTooltipFor(el, clientX, clientY) {
+    const tip = tooltipEl();
+    const title = el.dataset.ttTitle || "";
+    const body = el.dataset.ttBody || "";
+    if (!title && !body) return;
+    activeTooltipTarget = el;
+    lastPointer = { x: clientX, y: clientY };
+    tip.querySelector(".tt-title").textContent = title;
+    tip.querySelector(".tt-body").innerHTML = tooltipBodyHtml(body);
+    tip.hidden = false;
+    tip.classList.add("show");
+    el.classList.add("tt-active");
+    const rect = tip.getBoundingClientRect();
+    const pad = 14;
+    let x = clientX + 14;
+    let y = clientY + 14;
+    if (x + rect.width + pad > window.innerWidth) x = clientX - rect.width - 14;
+    if (y + rect.height + pad > window.innerHeight) y = clientY - rect.height - 14;
+    tip.style.left = `${Math.max(pad, x)}px`;
+    tip.style.top = `${Math.max(pad, y)}px`;
+  }
+  function hideTooltip() {
+    if (activeTooltipTarget) activeTooltipTarget.classList.remove("tt-active");
+    activeTooltipTarget = null;
+    const tip = tooltipEl();
+    tip.classList.remove("show");
+    tip.hidden = true;
+  }
+  function refreshTooltipAtPointer() {
+    if (!activeTooltipTarget) return;
+    const el = document.elementFromPoint(lastPointer.x, lastPointer.y)?.closest?.("[data-tt-title], [data-tt-body]");
+    if (el) showTooltipFor(el, lastPointer.x, lastPointer.y);
+  }
+  document.addEventListener("pointermove", (ev) => { lastPointer = { x: ev.clientX, y: ev.clientY }; }, { passive:true });
+
+  function bindTooltip(el) {
+    const move = (ev) => showTooltipFor(el, ev.clientX, ev.clientY);
+    el.addEventListener("pointerenter", move);
+    el.addEventListener("pointermove", move);
+    el.addEventListener("pointerleave", hideTooltip);
+    el.addEventListener("focus", () => showTooltipFor(el, window.innerWidth / 2, window.innerHeight / 2));
+    el.addEventListener("blur", hideTooltip);
+  }
+  function bindMetricInteractions(panelEl) {
+    const metrics = panelEl.querySelectorAll(".metric");
+    const agentRows = [...panelEl.querySelectorAll(".agent-row")].filter(r => !r.classList.contains("metric-row"));
+    const coverageRow = panelEl.querySelector('.agent-row[data-metric-row="coverage"]');
+    const thresholdRow = panelEl.querySelector('.agent-row[data-metric-row="threshold"]');
+    const clear = () => {
+      panelEl.querySelectorAll(".hl").forEach(el => el.classList.remove("hl"));
+      panelEl.querySelectorAll(".metric.active").forEach(el => el.classList.remove("active"));
+    };
+    const highlightRow = (row) => {
+      if (!row) return;
+      row.classList.add("hl");
+      row.querySelectorAll(".cell").forEach(c => c.classList.add("hl"));
+    };
+    const highlightAgents = () => agentRows.forEach(highlightRow);
+
+    panelEl.querySelectorAll("[data-tt-title], [data-tt-body]").forEach(bindTooltip);
+
+    metrics.forEach(box => {
+      const target = box.dataset.target;
+      const apply = () => {
+        clear();
+        box.classList.add("active");
+        if (target === "coverage") highlightRow(coverageRow);
+        else if (target === "threshold") highlightRow(thresholdRow);
+        else highlightAgents();
+      };
+      box.addEventListener("pointerenter", apply);
+      box.addEventListener("pointerleave", clear);
+      box.addEventListener("focus", apply);
+      box.addEventListener("blur", clear);
+    });
+  }
+
+  function trendFigure(title, subtitle, lines, metricKey, uptoT) {
+    const meta = FIGURE_METRICS[metricKey] || FIGURE_METRICS.alignment;
+    const width = 320, height = 140, pad = {l:28,r:10,t:10,b:22};
+    const xMax = Math.max(1, ...lines.map(line => line.values.length));
+    const shown = clamp(uptoT || xMax, 1, xMax);
+    let yMin = meta.range[0], yMax = meta.range[1];
+    const vals = lines.flatMap(line => line.values).filter(v => Number.isFinite(v));
+    if (vals.length) {
+      yMin = Math.min(yMin, ...vals);
+      yMax = Math.max(yMax, ...vals);
+    }
+    if (yMax === yMin) yMax = yMin + 1;
+    const sx = (idx) => pad.l + (idx / Math.max(1, xMax - 1)) * (width - pad.l - pad.r);
+    const sy = (v) => pad.t + (1 - ((v - yMin) / (yMax - yMin))) * (height - pad.t - pad.b);
+    const linePaths = lines.map((line, i) => {
+      const visible = line.values.slice(0, shown);
+      let lastFinite = Number.isFinite(visible.find(v => Number.isFinite(v))) ? visible.find(v => Number.isFinite(v)) : (yMin + yMax) / 2;
+      const pts = visible.map((v, idx) => {
+        if (Number.isFinite(v)) lastFinite = v;
+        return `${idx===0?'M':'L'} ${sx(idx).toFixed(2)} ${sy(lastFinite).toFixed(2)}`;
+      }).join(' ');
+      const lastIdx = visible.length - 1;
+      const marker = `<circle cx="${sx(lastIdx).toFixed(2)}" cy="${sy(lastFinite).toFixed(2)}" r="2.8" fill="${lineColor(i)}"></circle>`;
+      return `<path d="${pts}" fill="none" stroke="${lineColor(i)}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>${marker}`;
+    }).join('');
+    const yTicks = [0,0.5,1].map(frac => {
+      const val = yMin + frac*(yMax-yMin);
+      const y = sy(val);
+      return `<g><line x1="${pad.l}" x2="${width-pad.r}" y1="${y}" y2="${y}" stroke="#ece7dc"/><text x="${pad.l-4}" y="${y+4}" text-anchor="end" font-size="10" fill="#666">${fmt(val,2)}</text></g>`;
+    }).join('');
+    const xTicks = [0, Math.max(0, Math.floor((xMax-1)/2)), xMax-1].filter((v, idx, arr) => arr.indexOf(v)===idx).map(v => {
+      const x = sx(v);
+      return `<g><line x1="${x}" x2="${x}" y1="${height-pad.b}" y2="${height-pad.b+4}" stroke="#999"/><text x="${x}" y="${height-4}" text-anchor="middle" font-size="10" fill="#666">${v+1}</text></g>`;
+    }).join('');
+    const markerX = sx(shown - 1);
+    const timeMarker = `<line x1="${markerX.toFixed(2)}" x2="${markerX.toFixed(2)}" y1="${pad.t}" y2="${height-pad.b}" stroke="#222" stroke-opacity=".18" stroke-dasharray="3 3"></line>`;
+    return `<div class="figure-panel"><h4>${title}</h4><svg class="trend-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none"><rect x="0" y="0" width="${width}" height="${height}" fill="#fff" rx="10" ry="10"></rect>${yTicks}<line x1="${pad.l}" x2="${pad.l}" y1="${pad.t}" y2="${height-pad.b}" stroke="#999"/><line x1="${pad.l}" x2="${width-pad.r}" y1="${height-pad.b}" y2="${height-pad.b}" stroke="#999"/>${xTicks}${timeMarker}${linePaths}</svg><div class="axis-labels"><span>t = 1</span><span>${meta.label} · drawn to t = ${shown}</span><span>t = ${xMax}</span></div><div class="figure-legend">${lines.map((line, i) => `<span class="legend-line"><span class="sw" style="border-top-color:${lineColor(i)}"></span>${line.label}</span>`).join('')}</div></div>`;
+  }
+
+  function bindToggleButton(button, handler) {
+    button.addEventListener("pointerdown", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      handler();
+    });
+  }
+  function makeThinPlusCell(label, title, handler, orientation = "horizontal") {
+    const cell = document.createElement("div");
+    cell.className = `thin-plus-cell${orientation === "vertical" ? " vertical" : ""}`;
+    cell.innerHTML = `<button class="thin-toggle" title="${title}" aria-label="${title}">${label}</button>`;
+    bindToggleButton(cell.querySelector("button"), handler);
+    return cell;
+  }
+  function makeThinToggle(label, title, onClickName) {
+    return makeThinPlusCell(label, title, onClickName, "vertical");
+  }
+  function makeColumnThinToggle(label, title, onClickName) {
+    return makeThinPlusCell(label, title, onClickName, "horizontal");
+  }
+  function toggleRowFigures() {
+    layoutChange(() => { state.rowFiguresExpanded = !state.rowFiguresExpanded; });
+  }
+  function toggleColumnFigures() {
+    layoutChange(() => { state.columnFiguresExpanded = !state.columnFiguresExpanded; });
+  }
+
+  function toggleRow(strategy) {
+    layoutChange(() => {
+      if (state.collapsedRows.has(strategy)) state.collapsedRows.delete(strategy);
+      else state.collapsedRows.add(strategy);
+    });
+  }
+  function toggleColumn(comm) {
+    layoutChange(() => {
+      if (state.collapsedCols.has(comm)) state.collapsedCols.delete(comm);
+      else state.collapsedCols.add(comm);
+    });
+  }
+  function gridColumnsTemplate() {
+    const left = "126px";
+    const cols = MAIN_COMMS.map(comm => state.collapsedCols.has(comm) ? "26px" : (state.rowFiguresExpanded ? "minmax(190px,1fr)" : "minmax(250px,1fr)"));
+    const rowFig = state.rowFiguresExpanded ? "minmax(220px,.9fr)" : "26px";
+    return [left, ...cols, rowFig].join(" ");
+  }
+  function shortComm(comm) {
+    if (comm === "private") return "Private";
+    if (comm === "ring") return "Ring";
+    return "Complete";
+  }
+  function updateSpeedReadout() {
+    const el = $("speedReadout");
+    if (!el) return;
+    el.textContent = `${Math.round(animationDelay())} ms/step`;
+  }
+
+  function makeDrawToken() {
+    const r = Math.random().toString(36).slice(2, 10);
+    return `${Date.now().toString(36)}-${r}`;
+  }
+  function layoutChange(fn) {
+    const wasAnimating = state.animating;
+    if (wasAnimating) {
+      clearInterval(state.timer);
+      state.timer = null;
+    }
+    fn();
+    render();
+    if (wasAnimating) {
+      $("status").textContent = "Layout changed while animating; restarting.";
+      setTimeout(() => { if (state.animating) startAnimationTimer(); }, 180);
+    }
+  }
+  function newSimulationDraw() {
+    state.runNonce += 1;
+    state.drawToken = makeDrawToken();
+    runAll("manual");
+  }
+  function modelChanged() {
+    state.runNonce += 1;
+    state.drawToken = makeDrawToken();
+    runAll("model");
+  }
+
+  function paramsClone(params, overrides) { return Object.assign({}, params, overrides || {}); }
+
+  function buildProxies(params) {
+    const strategies = Object.keys(STRATEGIES);
+    const rows = [];
+    for (const strategy of strategies) {
+      const tiny = paramsClone(params, { n:1, runs:Math.min(params.runs, 80) });
+      const ic = simulatePanel({ id:`proxy-ic-${strategy}`, strategy, comm:"private", title:"", tag:"" }, tiny);
+      const icM = metricsFor(matrixAt(ic.runs, tiny.horizon, tiny.n), tiny.theta).meanCorrect;
+
+      const gic = simulatePanel({ id:`proxy-gic-${strategy}`, strategy, comm:"complete", title:"", tag:"" }, params);
+      const gicM = metricsFor(matrixAt(gic.runs, params.horizon, params.n), params.theta).meanCorrect;
+
+      const uc = simulatePanel({ id:`proxy-uc-${strategy}`, strategy, comm:"complete", title:"", tag:"" }, params, {
+        strategyForAgent: (i) => i === 0 ? strategy : "best"
+      });
+      const ucMat = matrixAt(uc.runs, params.horizon, params.n);
+      const ucM = mean(ucMat[0]);
+
+      const half = Math.max(1, Math.floor(params.n / 2));
+      const guc = simulatePanel({ id:`proxy-guc-${strategy}`, strategy, comm:"complete", title:"", tag:"" }, params, {
+        strategyForAgent: (i) => i < half ? strategy : "best"
+      });
+      const gucMat = matrixAt(guc.runs, params.horizon, params.n);
+      const groupVals = [];
+      for (let i=0; i<half; i++) groupVals.push(...gucMat[i]);
+      const gucM = mean(groupVals);
+      rows.push({ strategy, icM, gicM, ucM, gucM });
+    }
+    return rows;
+  }
+
+  function renderProxyTable(rows) {
+    const html = `
+      <table class="proxy-table">
+        <thead><tr><th>Strategy</th><th>IC-ish</th><th>GIC-ish</th><th>UC stress</th><th>GUC stress</th></tr></thead>
+        <tbody>
+          ${rows.map(r => `<tr><td>${STRATEGIES[r.strategy].short}</td><td>${fmt(r.icM)}</td><td>${fmt(r.gicM)}</td><td>${fmt(r.ucM)}</td><td>${fmt(r.gucM)}</td></tr>`).join("")}
+        </tbody>
+      </table>
+      <p class="tiny">IC-ish = one private learner at final time. GIC-ish = all agents use the method in complete communication. UC stress = focal learner among best-up-to-now outsiders. GUC stress = half-community using the method among best-up-to-now outsiders.</p>
+    `;
+    $("proxyTable").innerHTML = html;
+  }
+
+  function renderStrategyNotes(params) {}
+
+  function runAll(reason = "initial") {
+    const params = readParams();
+    $("agents").value = params.n; $("runs").value = params.runs; $("horizon").value = params.horizon; $("stateCount").value = params.stateCount; $("payoffVar").value = params.payoffVar.toFixed(4);
+    $("time").max = params.horizon;
+    if (parseInt($("time").value,10) > params.horizon) $("time").value = params.horizon;
+    if (parseInt($("time").value,10) < 1) $("time").value = 1;
+
+    state.community = panelDefinitions(params).map(def => simulatePanel(def, params));
+    buildFocal(params);
+    state.proxies = buildProxies(params);
+    render();
+    $("drawReadout").textContent = `${params.draw}:${String(params.drawToken || "").slice(-4)}`;
+    const shortToken = String(params.drawToken || "no-token").slice(-6);
+    const prefix = reason === "manual" ? "New simulation draw" : reason === "model" ? "Model changed; new draw" : reason === "loop" ? "Looped; new draw" : "Simulated";
+    $("status").textContent = `${prefix} ${params.draw} (${shortToken}): ${params.runs} histories × ${params.n} agents × ${params.horizon} steps.`;
+  }
+
+  function buildFocal(params) {
+    const background = $("backgroundStrategy").value;
+    const fA = $("focalA").value;
+    const fB = $("focalB").value;
+    const comm = $("focalComm").value;
+    const pref = preferredActions(params.n, params.prefMode, params.actionCount);
+    state.focal = [
+      simulatePanel({ id:`focal-left-${background}-${fA}-${comm}`, strategy:background, comm, title:`Focal uses ${STRATEGIES[fA].label}`, tag:`others use ${STRATEGIES[background].short} · ${commLabel(comm)}` }, params, { preferred:pref, strategyForAgent:(i)=>i===0?fA:background }),
+      simulatePanel({ id:`focal-right-${background}-${fB}-${comm}`, strategy:background, comm, title:`Focal uses ${STRATEGIES[fB].label}`, tag:`others use ${STRATEGIES[background].short} · ${commLabel(comm)}` }, params, { preferred:pref, strategyForAgent:(i)=>i===0?fB:background })
+    ];
+  }
+
+  function render() {
+    const params = readParams();
+    const t = clamp(parseInt($("time").value,10)||1,1,params.horizon);
+    $("time").value = t;
+    $("timeReadout").textContent = `t = ${t}`;
+    updateSpeedReadout();
+    renderCommunity(params, t);
+    renderProxyTable(state.proxies);
+    renderFocal(params, t);
+    requestAnimationFrame(refreshTooltipAtPointer);
+  }
+  function placeCell(el, col, row, colSpan = 1, rowSpan = 1) {
+    el.style.gridColumn = `${col} / span ${colSpan}`;
+    el.style.gridRow = `${row} / span ${rowSpan}`;
+    return el;
+  }
+
+  function renderCommunity(params, t) {
+    const grid = $("panelGrid");
+    grid.innerHTML = "";
+    grid.className = "connection-grid";
+    grid.style.gridTemplateColumns = gridColumnsTemplate();
+
+    const strategies = Object.entries(STRATEGIES);
+    const totalRows = strategies.length + 2;
+    const byId = new Map(state.community.map(p => [p.def.strategy + "|" + p.def.comm, p]));
+
+    const corner = document.createElement("div");
+    corner.className = "grid-corner";
+    corner.textContent = "Strategy";
+    grid.appendChild(placeCell(corner, 1, 1));
+
+    MAIN_COMMS.forEach((comm, idx) => {
+      const col = 2 + idx;
+      if (state.collapsedCols.has(comm)) {
+        grid.appendChild(placeCell(makeThinPlusCell("+", `Expand ${shortComm(comm)}`, () => toggleColumn(comm), "vertical"), col, 1, 1, totalRows));
+      } else {
+        const head = document.createElement("div");
+        head.className = "col-head";
+        head.innerHTML = `<span class="label-text">${commLabel(comm)}</span><button class="collapse-toggle" title="Collapse ${shortComm(comm)}">−</button>`;
+        bindToggleButton(head.querySelector("button"), () => toggleColumn(comm));
+        grid.appendChild(placeCell(head, col, 1));
+      }
+    });
+
+    if (state.rowFiguresExpanded) {
+      const extra = document.createElement("div");
+      extra.className = "extra-head";
+      extra.innerHTML = `Row figures <button class="expanded-toggle" title="Collapse row figures">×</button>`;
+      bindToggleButton(extra.querySelector("button"), toggleRowFigures);
+      grid.appendChild(placeCell(extra, 5, 1));
+    } else {
+      grid.appendChild(placeCell(makeThinPlusCell("+", "Expand row figures", toggleRowFigures, "vertical"), 5, 1, 1, strategies.length + 1));
+    }
+
+    strategies.forEach(([strategy, meta], idx) => {
+      const row = 2 + idx;
+      if (state.collapsedRows.has(strategy)) {
+        grid.appendChild(placeCell(makeThinPlusCell("+", `Expand ${meta.label}`, () => toggleRow(strategy), "horizontal"), 1, row, 5));
+        return;
+      }
+
+      const rowHead = document.createElement("div");
+      rowHead.className = "row-head";
+      rowHead.innerHTML = `<span class="label-text">${meta.label}</span><button class="collapse-toggle" title="Collapse ${meta.label}">−</button>`;
+      bindToggleButton(rowHead.querySelector("button"), () => toggleRow(strategy));
+      grid.appendChild(placeCell(rowHead, 1, row));
+
+      const rowPanels = [];
+      MAIN_COMMS.forEach((comm, cidx) => {
+        const panel = byId.get(strategy + "|" + comm);
+        rowPanels.push(panel);
+        if (!state.collapsedCols.has(comm)) {
+          grid.appendChild(placeCell(buildMatrix(panel, params, t).el, 2 + cidx, row));
+        }
+      });
+
+      if (state.rowFiguresExpanded) {
+        const metricKey = figureMetricKey();
+        const fig = trendFigure(meta.label, ``, rowPanels.map((panel, i) => ({ label: ["Private","Ring","Complete"][i], values: seriesValue(panel, metricKey) })), metricKey, t);
+        const wrap = document.createElement('div');
+        wrap.innerHTML = fig;
+        grid.appendChild(placeCell(wrap.firstChild, 5, row));
+      }
+    });
+
+    renderColumnFigureRow(grid, byId, t, totalRows);
+  }
+
+  function renderColumnFigureRow(grid, byId, t, totalRows) {
+    const bottomRow = totalRows;
+    const strategies = Object.keys(STRATEGIES).filter(strategy => !state.collapsedRows.has(strategy));
+    if (state.columnFiguresExpanded) {
+      const bottomHead = document.createElement("div");
+      bottomHead.className = "bottom-head";
+      bottomHead.innerHTML = `Column figures <button class="expanded-toggle" title="Collapse column figures">×</button>`;
+      bindToggleButton(bottomHead.querySelector("button"), toggleColumnFigures);
+      grid.appendChild(placeCell(bottomHead, 1, bottomRow));
+      const metricKey = figureMetricKey();
+      MAIN_COMMS.forEach((comm, idx) => {
+        if (!state.collapsedCols.has(comm)) {
+          const lines = strategies.map(strategy => ({ label: STRATEGIES[strategy].short, values: seriesValue(byId.get(strategy + "|" + comm), metricKey) }));
+          const fig = trendFigure(commLabel(comm), ``, lines, metricKey, t);
+          const wrap = document.createElement('div');
+          wrap.innerHTML = fig;
+          grid.appendChild(placeCell(wrap.firstChild, 2 + idx, bottomRow));
+        }
+      });
+      const dead = document.createElement("div");
+      dead.className = "dead-cell";
+      grid.appendChild(placeCell(dead, 5, bottomRow));
+    } else {
+      const bottomHead = document.createElement("div");
+      bottomHead.className = "bottom-head collapsed";
+      grid.appendChild(placeCell(bottomHead, 1, bottomRow));
+      const bar = makeThinPlusCell("+", "Expand column figures", toggleColumnFigures, "horizontal");
+      bar.classList.add("bottom-strip");
+      grid.appendChild(placeCell(bar, 2, bottomRow, 3));
+      const dead = document.createElement("div");
+      dead.className = "dead-cell bottom-strip";
+      grid.appendChild(placeCell(dead, 5, bottomRow));
+    }
+  }
+
+  function renderFocal(params, t) {
+    const box = $("focalPanels");
+    box.innerHTML = "";
+    const left = buildMatrix(state.focal[0], params, t, { focal:$("focalA").value, focalAgent:0 });
+    const right = buildMatrix(state.focal[1], params, t, { focal:$("focalB").value, focalAgent:0 });
+    box.appendChild(left.el); box.appendChild(right.el);
+    const matL = matrixAt(state.focal[0].runs, t, params.n);
+    const matR = matrixAt(state.focal[1].runs, t, params.n);
+    $("focalDelta").innerHTML = `
+      <div>Focal correctness Δ</div><div>${fmt(mean(matR[0]) - mean(matL[0]))}</div>
+      <div>Group mean Δ</div><div>${fmt(right.metrics.meanCorrect - left.metrics.meanCorrect)}</div>
+      <div>Coverage Δ</div><div>${fmt(right.metrics.coverage - left.metrics.coverage)}</div>
+      <div>Alignment Δ</div><div>${fmt(right.metrics.alignment - left.metrics.alignment)}</div>
+    `;
+  }
+
+  function animationDelay() {
+    const v = clamp(parseFloat($("animSpeed").value) || 0, 0, 100);
+    if (v <= 50) return 1200 - (v / 50) * (1200 - 150);
+    return 150 - ((v - 50) / 50) * (150 - 35);
+  }
+  function startAnimationTimer() {
+    clearInterval(state.timer);
+    state.timer = setInterval(() => {
+      const params = readParams();
+      let t = parseInt($("time").value,10)||1;
+      const wrapping = t >= params.horizon;
+      if (wrapping && $("loopMode").value === "redraw") {
+        state.runNonce += 1;
+        state.drawToken = makeDrawToken();
+        $("time").value = 1;
+        runAll("loop");
+        return;
+      }
+      t = wrapping ? 1 : t + 1;
+      $("time").value = t;
+      render();
+    }, animationDelay());
+  }
+  function animate() {
+    if (state.animating) { state.animating = false; clearInterval(state.timer); $("animate").textContent = "Animate"; return; }
+    state.animating = true; $("animate").textContent = "Stop"; startAnimationTimer();
+  }
+
+  function init() {
+    populateStrategySelect("backgroundStrategy", "socialFast");
+    populateStrategySelect("focalA", "socialFast");
+    populateStrategySelect("focalB", "preferred");
+
+    $("rerun").addEventListener("click", newSimulationDraw);
+    $("animate").addEventListener("click", animate);
+    $("resetTime").addEventListener("click", () => { $("time").value = Math.min(20, readParams().horizon); render(); });
+    $("time").addEventListener("input", render);
+    $("sortCols").addEventListener("change", render);
+    $("showMetricRows").addEventListener("change", render);
+    $("figureMetric").addEventListener("change", render);
+    $("animSpeed").addEventListener("input", () => { updateSpeedReadout(); if (state.animating) startAnimationTimer(); });
+    ["backgroundStrategy","focalA","focalB","focalComm"].forEach(id => $(id).addEventListener("change", () => { buildFocal(readParams()); render(); }));
+    controls.forEach(id => {
+      const el = $(id);
+      if (!el || ["time","sortCols","showMetricRows","figureMetric","animSpeed","loopMode","backgroundStrategy","focalA","focalB","focalComm"].includes(id)) return;
+      el.addEventListener("change", modelChanged);
+    });
+    window.addEventListener("resize", render);
+    state.drawToken = makeDrawToken();
+    runAll();
+  }
+
+  init();
+})();
+</script>
+<div id="appTooltip" class="tooltip" hidden><div class="tt-title"></div><div class="tt-body"></div></div>
+</body>
+</html>
