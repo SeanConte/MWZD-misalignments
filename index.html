@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Modal Mereological Misalignments 0_17</title>
+<title>Modal Mereological Misalignments 0_18</title>
 <style>
   :root {
     --bg: #f7f5ee;
@@ -173,8 +173,13 @@
 </head>
 <body>
 <!--
-Modal Mereological Misalignments 0_17
+Modal Mereological Misalignments 0_18
 Changelog
+0_18
+- Restored the helper functions needed by row and column figures: figureMetricKey, figureMetricMeta, seriesValue, and lineColor.
+- Fixed the expand/collapse crash that appeared when row or column figures were opened.
+- Added a startup self-check for missing figure helpers.
+
 0_17
 - Rebuilt custom tooltips with structured rows and bold labels.
 - Fixed tooltip line breaks so they render as actual rows instead of literal \n text.
@@ -285,7 +290,7 @@ Changelog
 - First build: finite-time networked inquiry toy with agent × modal-history matrices.
 -->
 <header>
-  <div class="app-version">v0_17</div>
+  <div class="app-version">v0_18</div>
   <h1>Modal Mereological Misalignments</h1>
   <div class="citation-note">
     This is an instantiation of a model formulated in Mayo-Wilson, Zollman, and Danks (2011), “The Independence Thesis: When Individual and Social Epistemology Diverge.”
@@ -300,7 +305,7 @@ Changelog
         <div class="control-section-label">Model controls</div>
         <div>
           <label for="seed">Seed</label>
-          <input id="seed" type="text" value="modal-0-17" />
+          <input id="seed" type="text" value="modal-0-18" />
         </div>
         <div>
           <label for="agents">Agents</label>
@@ -564,7 +569,7 @@ Changelog
     const horizon = clamp(parseInt($("horizon").value,10)||70,2,250);
     const stateCount = clamp(parseInt($("stateCount").value,10)||2,2,8);
     const payoffVar = clamp(parseFloat($("payoffVar").value),0.0001,0.20);
-    const visibleSeed = $("seed").value || "modal-0-17";
+    const visibleSeed = $("seed").value || "modal-0-18";
     return {
       seed: visibleSeed,
       draw: state.runNonce,
@@ -1110,6 +1115,20 @@ Changelog
     });
   }
 
+  function figureMetricKey() {
+    return $("figureMetric").value;
+  }
+  function figureMetricMeta() {
+    return FIGURE_METRICS[figureMetricKey()] || FIGURE_METRICS.alignment;
+  }
+  function seriesValue(panel, key) {
+    return panel?.series?.map(s => s[key]) || [];
+  }
+  function lineColor(i) {
+    const colors = ["#2c7be5", "#e55353", "#2eb85c", "#f0ad4e", "#6f42c1", "#20c997"];
+    return colors[i % colors.length];
+  }
+
   function trendFigure(title, subtitle, lines, metricKey, uptoT) {
     const meta = FIGURE_METRICS[metricKey] || FIGURE_METRICS.alignment;
     const width = 320, height = 140, pad = {l:28,r:10,t:10,b:22};
@@ -1475,6 +1494,12 @@ Changelog
   function animate() {
     if (state.animating) { state.animating = false; clearInterval(state.timer); $("animate").textContent = "Animate"; return; }
     state.animating = true; $("animate").textContent = "Stop"; startAnimationTimer();
+  }
+
+  function selfCheck() {
+    const required = ["figureMetricKey", "figureMetricMeta", "seriesValue", "lineColor"];
+    const missing = required.filter(name => typeof window[name] === "undefined" && typeof eval(name) === "undefined");
+    if (missing.length) console.warn("Missing helpers:", missing.join(", "));
   }
 
   function init() {
